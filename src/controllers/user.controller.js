@@ -131,4 +131,51 @@ const refreshAccessToken=asyncHandler(async (req,res)=>{
          new ApiResponse(201,{},"Session restarted!!")
        )
 })
-export {registerUser , loginUser , logoutUser , refreshAccessToken}
+const changePassword=asyncHandler(async (req,res)=>{
+      
+      const {newPassword}=req.body;
+      console.log(newPassword);
+      if(!newPassword){
+        throw new ApiError(400,"New password is required");
+      }
+      req.user.password=newPassword;
+      await req.user.save({validateBeforeSave:false});
+      res.status(200)
+      .json(
+        new ApiResponse(200,{},"Password Changed Successfully!!")
+      )
+
+})
+const updateUser=asyncHandler(async (req,res)=>{
+     const {fullName,email}=req.body;
+     if(!fullName || !email){
+       throw new ApiError(400,"Some fields are missing ");
+     }
+     req.user.fullName=fullName;
+     req.user.email=email;
+     await req.user.save({validateBeforeSave:false});
+     res.status(200)
+     .json(
+      new ApiResponse(200,req.user,"User Profile is updateded successfully!!")
+     )
+})
+const changeAvatar=asyncHandler(async (req , res)=>{
+      const avatar=req.file.path;
+      if(!avatar){
+        throw new ApiError(500,"file is not found in local folder");
+      }
+      console.log(avatar);
+      const avatarString=await uploadOnCloudinary(avatar); 
+      if(avatarString!==undefined){
+         req.user.avatar=avatarString.url;
+         await req.user.save({validateBeforeSave:false});
+      }
+      else{
+        throw new ApiError(500,"Unable to upload on cloudinary");
+      }
+      res.status(200)
+      .json(
+        new ApiResponse(200,"Avatar changed successfully!!")
+      )
+})
+export {registerUser , loginUser , logoutUser , refreshAccessToken,changePassword,updateUser,changeAvatar}
